@@ -1,0 +1,20 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /shoes/{allPaths=**} {
+      // Allows anyone on the website to view the images
+      allow read: if true;
+      // Only allows logged-in shopkeepers on the mobile app to upload/delete
+      allow write: if request.auth != null;
+    }
+
+    match /payment_screenshots/{allPaths=**} {
+      // Customers uploading UPI proof are not signed in, so creates stay public.
+      // Keep the upload constrained to reasonably sized images.
+      allow read: if true;
+      allow create: if request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow update, delete: if request.auth != null;
+    }
+  }
+}
